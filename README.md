@@ -68,6 +68,10 @@ Content-Length: 33
 
 Create a pull request.
 
+## Thanks
+
+- To the AWS Lambda team for their Lambda handler function, which greatly inspired this code.
+
 ## License
 
 [MIT](./LICENSE)
