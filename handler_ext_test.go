@@ -14,14 +14,14 @@ import (
 	"github.com/marcusirgens/jsonhandler"
 )
 
-func Test_handler_ServeHTTP(t *testing.T) {
+func Test_Handler_ServeHTTP(t *testing.T) {
 	tests := []struct {
-		name            string
-		payload         string
-		handler         interface{}
-		wantStatus      int
-		want            string
-		dropResultCheck bool
+		name         string
+		payload      string
+		handler      interface{}
+		wantStatus   int
+		want         string
+		ignoreResult bool
 	}{
 		{
 			name:    "Hello world",
@@ -53,12 +53,12 @@ func Test_handler_ServeHTTP(t *testing.T) {
 			want:       `{"error": "Bad gateway"}`,
 		},
 		{
-			name:            "Bad request",
-			payload:         `[]`,
-			handler:         func(_ context.Context, s string) {},
-			wantStatus:      http.StatusBadRequest,
-			want:            ``,
-			dropResultCheck: true,
+			name:         "Bad request",
+			payload:      `[]`,
+			handler:      func(_ context.Context, s string) {},
+			wantStatus:   http.StatusBadRequest,
+			want:         ``,
+			ignoreResult: true,
 		},
 	}
 	for _, tt := range tests {
@@ -82,10 +82,10 @@ func Test_handler_ServeHTTP(t *testing.T) {
 			if res.StatusCode != tt.wantStatus {
 				t.Errorf("invalid status %d; want %d", res.StatusCode, tt.wantStatus)
 			}
+			defer res.Body.Close()
+			_, _ = io.Copy(&body, res.Body)
 
-			if !tt.dropResultCheck {
-				defer res.Body.Close()
-				_, _ = io.Copy(&body, res.Body)
+			if !tt.ignoreResult {
 				if ok, err := equalJSON(tt.want, body.String()); err != nil {
 					t.Errorf("failed to compare JSON: %v", err)
 				} else if !ok {

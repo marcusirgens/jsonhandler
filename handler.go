@@ -75,7 +75,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err  error
 		opts []ResponseFunc
 	)
-	if h.outN < 0 && h.errN < 0 {
+	if h.outN < 0 && h.errN < 0 && h.optsN < 0 {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -97,7 +97,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleError(w, err)
 		return
 	}
-	h.writeJSON(w, http.StatusOK, out, opts)
+	h.writeResponse(w, http.StatusOK, out, opts)
 }
 
 // errResp is the output format of the errors returned by handler.ServeHTTP
@@ -118,35 +118,39 @@ func (h handler) handleError(w http.ResponseWriter, err error) {
 	} else {
 		msg = err.Error()
 	}
-	h.writeJSON(w, code, errResp{Message: msg}, nil)
+	h.writeResponse(w, code, errResp{Message: msg}, nil)
 }
 
-// writeJSON writes the JSON representation of the output from handler.fn.
-func (h handler) writeJSON(w http.ResponseWriter, code int, out interface{}, opts []ResponseFunc) {
+// writeResponse writes the output from handler.fn.
+func (h handler) writeResponse(w http.ResponseWriter, code int, out interface{}, opts []ResponseFunc) {
 	res := Response{
 		hd:         w.Header(),
 		StatusCode: code,
 	}
 
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetIndent("", "  ")
+	var body bytes.Buffer
 
-	if err := enc.Encode(out); err != nil {
-		http.Error(w, "Internal error: Encoding response failed", http.StatusInternalServerError)
+	// we might reach this point with no demand for an actual json response, so double check
+	if h.outN >= 0 || (h.outN < 0 && out != nil) {
+		enc := json.NewEncoder(&body)
+		enc.SetIndent("", "  ")
+
+		if err := enc.Encode(out); err != nil {
+			http.Error(w, "Internal error: Encoding response failed", http.StatusInternalServerError)
+		}
+		w.Header().Set("content-type", "application/json; charset=utf-8")
 	}
 
 	for _, o := range opts {
 		o(&res)
 	}
 
-	w.Header().Set("content-type", "application/json; charset=utf-8")
 	for _, c := range res.cookies {
 		http.SetCookie(w, c)
 	}
 	w.WriteHeader(res.StatusCode)
 
-	_, _ = io.Copy(w, &buf)
+	_, _ = io.Copy(w, &body)
 }
 
 // NewHandler creates a new handler. fn must be one of the following types:

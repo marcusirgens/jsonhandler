@@ -71,11 +71,12 @@ func TestNewHandler(t *testing.T) {
 
 func Test_handler_ServeHTTP(t *testing.T) {
 	tests := []struct {
-		name       string
-		payload    string
-		handler    interface{}
-		wantStatus int
-		want       string
+		name         string
+		payload      string
+		handler      interface{}
+		wantStatus   int
+		want         string
+		ignoreOutput bool
 	}{
 		{
 			name:    "Hello world",
@@ -96,6 +97,17 @@ func Test_handler_ServeHTTP(t *testing.T) {
 			},
 			wantStatus: http.StatusCreated,
 			want:       `"ok"`,
+		},
+		{
+			name:    "Only writes 201",
+			payload: `"world"`,
+			handler: func(_ context.Context) []ResponseFunc {
+				return []ResponseFunc{func(r *Response) {
+					r.StatusCode = http.StatusCreated
+				}}
+			},
+			wantStatus:   http.StatusCreated,
+			ignoreOutput: true,
 		},
 	}
 	for _, tt := range tests {
@@ -122,10 +134,13 @@ func Test_handler_ServeHTTP(t *testing.T) {
 
 			defer res.Body.Close()
 			_, _ = io.Copy(&body, res.Body)
-			if ok, err := equalJSON(tt.want, body.String()); err != nil {
-				t.Errorf("failed to compare JSON: %v", err)
-			} else if !ok {
-				t.Errorf("%s != %s", tt.want, body.String())
+
+			if !tt.ignoreOutput {
+				if ok, err := equalJSON(tt.want, body.String()); err != nil {
+					t.Errorf("failed to compare JSON: %v", err)
+				} else if !ok {
+					t.Errorf("%s != %s", tt.want, body.String())
+				}
 			}
 		})
 	}
