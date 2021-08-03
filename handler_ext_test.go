@@ -122,6 +122,7 @@ func Test_Handler_ServeHTTP(t *testing.T) {
 	})
 }
 
+// See https://gist.github.com/turtlemonvh/e4f7404e28387fadb8ad275a99596f67
 func equalJSON(s1, s2 string) (bool, error) {
 	var o1 interface{}
 	var o2 interface{}
