@@ -70,8 +70,11 @@ Create a pull request.
 
 ## Thanks
 
-- To the AWS Lambda team for their Lambda handler function, which greatly inspired this code.
+- To the AWS Lambda team for [their Lambda handler function], which greatly inspired this code.
+
 
 ## License
 
 [MIT](./LICENSE)
+
+[their Lambda handler function]: https://github.com/aws/aws-lambda-go/blob/5d6413264f82afaa7587b56e3f09f1422c898c68/lambda/handler.go
