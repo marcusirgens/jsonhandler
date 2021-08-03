@@ -30,5 +30,3 @@ func Errorf(code int, format string, a ...interface{}) HandlerErr {
 		err:     errors.Unwrap(err),
 	}
 }
-
-

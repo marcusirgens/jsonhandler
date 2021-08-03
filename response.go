@@ -22,4 +22,3 @@ func (r *Response) SetCookie(cookie *http.Cookie) {
 // ResponseFunc may alter the response further after the http.Handler created
 // by NewHandler returns.
 type ResponseFunc func(r *Response)
-

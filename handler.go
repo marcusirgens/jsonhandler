@@ -11,7 +11,6 @@ import (
 	"reflect"
 )
 
-
 // HandlerErr is the error type created by Error and Errorf.
 type HandlerErr struct {
 	code    int
@@ -29,6 +28,7 @@ const (
 )
 
 type ctxKey int
+
 const (
 	ctxKeyRequest ctxKey = iota + 1
 )
